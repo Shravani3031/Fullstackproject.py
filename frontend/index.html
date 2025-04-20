@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Item Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        form, .items {
+            margin-top: 20px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 300px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button.delete {
+            background-color: #dc3545;
+            margin-left: 10px;
+        }
+        .item {
+            padding: 10px 0;
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Item Manager</h1>
+
+    <form id="itemForm">
+        <input type="text" id="itemName" placeholder="Enter item name" required />
+        <button type="submit">Add Item</button>
+    </form>
+
+    <div class="items" id="itemList">
+        <!-- Items will be listed here -->
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/items';
+
+        async function fetchItems() {
+            const res = await fetch(API_URL);
+            const items = await res.json();
+            const itemList = document.getElementById('itemList');
+            itemList.innerHTML = '';
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    ${item.name}
+                    <button class="delete" onclick="deleteItem('${item._id}')">Delete</button>
+                `;
+                itemList.appendChild(div);
+            });
+        }
+
+        async function addItem(e) {
+            e.preventDefault();
+            const name = document.getElementById('itemName').value;
+            if (!name) return;
+
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+
+            document.getElementById('itemName').value = '';
+            fetchItems();
+        }
+
+        async function deleteItem(id) {
+            await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE'
+            });
+            fetchItems();
+        }
+
+        document.getElementById('itemForm').addEventListener('submit', addItem);
+
+        fetchItems(); // Initial load
+    </script>
+</body>
+</html>
